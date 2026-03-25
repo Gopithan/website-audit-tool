@@ -1,665 +1,912 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PagePulse — AI Website Audit Tool</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Cabinet+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #0a0a0f;
-    --surface: #111118;
-    --surface2: #1a1a24;
-    --border: #252535;
-    --accent: #7c6bff;
-    --accent2: #ff6b9d;
-    --accent3: #6bffe0;
-    --text: #f0f0ff;
-    --muted: #6b6b88;
-    --warn: #ffb347;
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PagePulse — AI Website Audit Tool</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Cabinet+Grotesk:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111118;
+      --surface2: #1a1a24;
+      --border: #252535;
+      --accent: #7c6bff;
+      --accent2: #ff6b9d;
+      --accent3: #6bffe0;
+      --text: #f0f0ff;
+      --muted: #6b6b88;
+      --warn: #ffb347;
+    }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Cabinet Grotesk', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Cabinet Grotesk', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
 
-  /* Background grid */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(124,107,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(124,107,255,0.03) 1px, transparent 1px);
-    background-size: 48px 48px;
-    pointer-events: none;
-    z-index: 0;
-  }
+    /* Background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(124, 107, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124, 107, 255, 0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
 
-  .glow-orb {
-    position: fixed;
-    width: 500px; height: 500px;
-    border-radius: 50%;
-    filter: blur(120px);
-    opacity: 0.12;
-    pointer-events: none;
-    z-index: 0;
-  }
-  .orb1 { background: var(--accent); top: -100px; left: -100px; }
-  .orb2 { background: var(--accent2); bottom: -100px; right: -100px; }
+    .glow-orb {
+      position: fixed;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.12;
+      pointer-events: none;
+      z-index: 0;
+    }
 
-  .container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 24px;
-    position: relative;
-    z-index: 1;
-  }
+    .orb1 {
+      background: var(--accent);
+      top: -100px;
+      left: -100px;
+    }
 
-  /* HEADER */
-  header {
-    padding: 40px 0 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .logo {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 22px;
-    letter-spacing: -0.5px;
-  }
-  .logo span { color: var(--accent); }
-  .badge {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    padding: 4px 10px;
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    color: var(--muted);
-  }
+    .orb2 {
+      background: var(--accent2);
+      bottom: -100px;
+      right: -100px;
+    }
 
-  /* HERO */
-  .hero {
-    text-align: center;
-    padding: 60px 0 50px;
-  }
-  .hero-tag {
-    display: inline-block;
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--accent3);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-bottom: 20px;
-    padding: 6px 14px;
-    border: 1px solid rgba(107,255,224,0.2);
-    border-radius: 20px;
-    background: rgba(107,255,224,0.04);
-  }
-  h1 {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(36px, 6vw, 68px);
-    font-weight: 800;
-    line-height: 1.05;
-    letter-spacing: -2px;
-    margin-bottom: 20px;
-  }
-  h1 .line2 { color: var(--accent); }
-  .hero-sub {
-    color: var(--muted);
-    font-size: 16px;
-    max-width: 460px;
-    margin: 0 auto 40px;
-    line-height: 1.7;
-  }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
 
-  /* INPUT AREA */
-  .input-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    max-width: 680px;
-    margin: 0 auto;
-  }
-  .input-row {
-    display: flex;
-    gap: 12px;
-    align-items: stretch;
-  }
-  .url-input {
-    flex: 1;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 18px;
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .url-input:focus { border-color: var(--accent); }
-  .url-input::placeholder { color: var(--muted); }
+    /* HEADER */
+    header {
+      padding: 40px 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
 
-  .btn-audit {
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 14px 28px;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-    letter-spacing: 0.3px;
-  }
-  .btn-audit:hover { background: #9480ff; transform: translateY(-1px); }
-  .btn-audit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: -0.5px;
+    }
 
-  .proxy-note {
-    margin-top: 12px;
-    font-size: 12px;
-    color: var(--muted);
-    text-align: center;
-    font-family: 'DM Mono', monospace;
-  }
-  .proxy-note a { color: var(--accent); text-decoration: none; }
+    .logo span {
+      color: var(--accent);
+    }
 
-  /* LOADING */
-  .loading-state {
-    display: none;
-    text-align: center;
-    padding: 60px 0;
-  }
-  .loading-state.active { display: block; }
-  .spinner-wrap {
-    position: relative;
-    width: 60px;
-    height: 60px;
-    margin: 0 auto 24px;
-  }
-  .spinner {
-    width: 60px; height: 60px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    color: var(--muted);
-  }
-  .loading-steps { margin-top: 16px; display: flex; flex-direction: column; gap: 6px; align-items: center; }
-  .step { font-size: 13px; color: var(--muted); opacity: 0; transition: opacity 0.4s; }
-  .step.done { color: var(--accent3); opacity: 1; }
-  .step.active { color: var(--text); opacity: 1; }
+    .badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--muted);
+    }
 
-  /* RESULTS */
-  #results { display: none; }
-  #results.active { display: block; }
+    /* HERO */
+    .hero {
+      text-align: center;
+      padding: 60px 0 50px;
+    }
 
-  .results-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 32px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid var(--border);
-  }
-  .audited-url {
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    color: var(--accent3);
-    word-break: break-all;
-  }
-  .btn-reset {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    border-radius: 8px;
-    padding: 8px 16px;
-    font-family: 'Cabinet Grotesk', sans-serif;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
-  .btn-reset:hover { border-color: var(--accent); color: var(--text); }
+    .hero-tag {
+      display: inline-block;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--accent3);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      padding: 6px 14px;
+      border: 1px solid rgba(107, 255, 224, 0.2);
+      border-radius: 20px;
+      background: rgba(107, 255, 224, 0.04);
+    }
 
-  /* SECTION LABELS */
-  .section-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .section-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(36px, 6vw, 68px);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -2px;
+      margin-bottom: 20px;
+    }
 
-  /* METRICS GRID */
-  .metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 12px;
-    margin-bottom: 40px;
-  }
-  .metric-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 18px 20px;
-    transition: border-color 0.2s;
-  }
-  .metric-card:hover { border-color: var(--accent); }
-  .metric-label {
-    font-size: 11px;
-    color: var(--muted);
-    font-family: 'DM Mono', monospace;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-  }
-  .metric-value {
-    font-family: 'Syne', sans-serif;
-    font-size: 28px;
-    font-weight: 700;
-    line-height: 1;
-    color: var(--text);
-  }
-  .metric-value.warn { color: var(--warn); }
-  .metric-value.good { color: var(--accent3); }
-  .metric-sub {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 4px;
-  }
+    h1 .line2 {
+      color: var(--accent);
+    }
 
-  /* META */
-  .meta-block {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px 24px;
-    margin-bottom: 40px;
-  }
-  .meta-item { margin-bottom: 14px; }
-  .meta-item:last-child { margin-bottom: 0; }
-  .meta-key {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
-    margin-bottom: 4px;
-  }
-  .meta-val { font-size: 14px; line-height: 1.5; }
-  .meta-val.missing { color: var(--accent2); font-style: italic; }
+    .hero-sub {
+      color: var(--muted);
+      font-size: 16px;
+      max-width: 460px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
 
-  /* AI INSIGHTS */
-  .insights-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 40px;
-  }
-  @media (max-width: 640px) { .insights-grid { grid-template-columns: 1fr; } }
+    /* INPUT AREA */
+    .input-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 680px;
+      margin: 0 auto;
+    }
 
-  .insight-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 22px;
-    position: relative;
-    overflow: hidden;
-  }
-  .insight-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-  }
-  .insight-card.seo::before { background: linear-gradient(90deg, var(--accent), transparent); }
-  .insight-card.msg::before { background: linear-gradient(90deg, var(--accent2), transparent); }
-  .insight-card.cta::before { background: linear-gradient(90deg, var(--accent3), transparent); }
-  .insight-card.content::before { background: linear-gradient(90deg, var(--warn), transparent); }
-  .insight-card.ux::before { background: linear-gradient(90deg, #ff6b6b, transparent); }
+    .input-row {
+      display: flex;
+      gap: 12px;
+      align-items: stretch;
+    }
 
-  .insight-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .insight-icon { font-size: 16px; }
-  .insight-body {
-    font-size: 13px;
-    line-height: 1.7;
-    color: #c8c8e8;
-  }
+    .url-input {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
 
-  /* RECOMMENDATIONS */
-  .recs-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 40px; }
-  .rec-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px 22px;
-    display: flex;
-    gap: 16px;
-    align-items: flex-start;
-  }
-  .rec-num {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 22px;
-    color: var(--accent);
-    min-width: 32px;
-    line-height: 1;
-    margin-top: 2px;
-  }
+    .url-input:focus {
+      border-color: var(--accent);
+    }
 
-  .rec-title {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 15px;
-    margin-bottom: 6px;
-  }
-  .rec-body { font-size: 13px; color: #c8c8e8; line-height: 1.6; }
-  .rec-tag {
-    display: inline-block;
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    padding: 3px 8px;
-    border-radius: 6px;
-    margin-top: 8px;
-    letter-spacing: 0.5px;
-  }
-  .tag-high { background: rgba(255,107,157,0.15); color: var(--accent2); border: 1px solid rgba(255,107,157,0.3); }
-  .tag-med { background: rgba(255,179,71,0.15); color: var(--warn); border: 1px solid rgba(255,179,71,0.3); }
-  .tag-low { background: rgba(107,255,224,0.1); color: var(--accent3); border: 1px solid rgba(107,255,224,0.2); }
+    .url-input::placeholder {
+      color: var(--muted);
+    }
 
-  /* PROMPT LOG */
-  .log-section { margin-bottom: 40px; }
-  .log-toggle {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    border-radius: 10px;
-    padding: 10px 18px;
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .log-toggle:hover { border-color: var(--accent); color: var(--text); }
-  .log-body {
-    display: none;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-  }
-  .log-body.open { display: block; }
-  .log-tab-bar {
-    display: flex;
-    border-bottom: 1px solid var(--border);
-    overflow-x: auto;
-  }
-  .log-tab {
-    padding: 10px 18px;
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    white-space: nowrap;
-    transition: all 0.2s;
-  }
-  .log-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .log-content { display: none; padding: 20px; }
-  .log-content.active { display: block; }
-  pre {
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    color: #c8c8e8;
-    white-space: pre-wrap;
-    word-break: break-word;
-    line-height: 1.6;
-  }
-  .log-key { color: var(--accent3); }
-  .log-str { color: #98d4a3; }
-  .log-num { color: var(--warn); }
+    .btn-audit {
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 28px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      letter-spacing: 0.3px;
+    }
 
-  /* ERROR */
-  .error-box {
-    display: none;
-    background: rgba(255,107,157,0.08);
-    border: 1px solid rgba(255,107,157,0.3);
-    border-radius: 12px;
-    padding: 20px 24px;
-    margin-top: 16px;
-    color: var(--accent2);
-    font-size: 14px;
-    line-height: 1.6;
-  }
-  .error-box.active { display: block; }
+    .btn-audit:hover {
+      background: #9480ff;
+      transform: translateY(-1px);
+    }
 
-  footer {
-    border-top: 1px solid var(--border);
-    padding: 24px 0;
-    text-align: center;
-    font-size: 12px;
-    color: var(--muted);
-    font-family: 'DM Mono', monospace;
-  }
+    .btn-audit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
 
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .fade-up { animation: fadeUp 0.4s ease forwards; }
-  .delay-1 { animation-delay: 0.1s; }
-  .delay-2 { animation-delay: 0.2s; }
-  .delay-3 { animation-delay: 0.3s; }
-</style>
+    .proxy-note {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .proxy-note a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    /* LOADING */
+    .loading-state {
+      display: none;
+      text-align: center;
+      padding: 60px 0;
+    }
+
+    .loading-state.active {
+      display: block;
+    }
+
+    .spinner-wrap {
+      position: relative;
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 24px;
+    }
+
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loading-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .loading-steps {
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .step {
+      font-size: 13px;
+      color: var(--muted);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+
+    .step.done {
+      color: var(--accent3);
+      opacity: 1;
+    }
+
+    .step.active {
+      color: var(--text);
+      opacity: 1;
+    }
+
+    /* RESULTS */
+    #results {
+      display: none;
+    }
+
+    #results.active {
+      display: block;
+    }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .audited-url {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: var(--accent3);
+      word-break: break-all;
+    }
+
+    .btn-reset {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-reset:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    /* SECTION LABELS */
+    .section-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* METRICS GRID */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      transition: border-color 0.2s;
+    }
+
+    .metric-card:hover {
+      border-color: var(--accent);
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .metric-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--text);
+    }
+
+    .metric-value.warn {
+      color: var(--warn);
+    }
+
+    .metric-value.good {
+      color: var(--accent3);
+    }
+
+    .metric-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* META */
+    .meta-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 40px;
+    }
+
+    .meta-item {
+      margin-bottom: 14px;
+    }
+
+    .meta-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .meta-key {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .meta-val {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .meta-val.missing {
+      color: var(--accent2);
+      font-style: italic;
+    }
+
+    /* AI INSIGHTS */
+    .insights-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+
+    @media (max-width: 640px) {
+      .insights-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .insight-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .insight-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+    }
+
+    .insight-card.seo::before {
+      background: linear-gradient(90deg, var(--accent), transparent);
+    }
+
+    .insight-card.msg::before {
+      background: linear-gradient(90deg, var(--accent2), transparent);
+    }
+
+    .insight-card.cta::before {
+      background: linear-gradient(90deg, var(--accent3), transparent);
+    }
+
+    .insight-card.content::before {
+      background: linear-gradient(90deg, var(--warn), transparent);
+    }
+
+    .insight-card.ux::before {
+      background: linear-gradient(90deg, #ff6b6b, transparent);
+    }
+
+    .insight-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .insight-icon {
+      font-size: 16px;
+    }
+
+    .insight-body {
+      font-size: 13px;
+      line-height: 1.7;
+      color: #c8c8e8;
+    }
+
+    /* RECOMMENDATIONS */
+    .recs-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 40px;
+    }
+
+    .rec-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 22px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .rec-num {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      color: var(--accent);
+      min-width: 32px;
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    .rec-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+
+    .rec-body {
+      font-size: 13px;
+      color: #c8c8e8;
+      line-height: 1.6;
+    }
+
+    .rec-tag {
+      display: inline-block;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      margin-top: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .tag-high {
+      background: rgba(255, 107, 157, 0.15);
+      color: var(--accent2);
+      border: 1px solid rgba(255, 107, 157, 0.3);
+    }
+
+    .tag-med {
+      background: rgba(255, 179, 71, 0.15);
+      color: var(--warn);
+      border: 1px solid rgba(255, 179, 71, 0.3);
+    }
+
+    .tag-low {
+      background: rgba(107, 255, 224, 0.1);
+      color: var(--accent3);
+      border: 1px solid rgba(107, 255, 224, 0.2);
+    }
+
+    /* PROMPT LOG */
+    .log-section {
+      margin-bottom: 40px;
+    }
+
+    .log-toggle {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .log-toggle:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .log-body {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .log-body.open {
+      display: block;
+    }
+
+    .log-tab-bar {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+
+    .log-tab {
+      padding: 10px 18px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .log-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .log-content {
+      display: none;
+      padding: 20px;
+    }
+
+    .log-content.active {
+      display: block;
+    }
+
+    pre {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      color: #c8c8e8;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.6;
+    }
+
+    .log-key {
+      color: var(--accent3);
+    }
+
+    .log-str {
+      color: #98d4a3;
+    }
+
+    .log-num {
+      color: var(--warn);
+    }
+
+    /* ERROR */
+    .error-box {
+      display: none;
+      background: rgba(255, 107, 157, 0.08);
+      border: 1px solid rgba(255, 107, 157, 0.3);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-top: 16px;
+      color: var(--accent2);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .error-box.active {
+      display: block;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 0;
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .fade-up {
+      animation: fadeUp 0.4s ease forwards;
+    }
+
+    .delay-1 {
+      animation-delay: 0.1s;
+    }
+
+    .delay-2 {
+      animation-delay: 0.2s;
+    }
+
+    .delay-3 {
+      animation-delay: 0.3s;
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="glow-orb orb1"></div>
-<div class="glow-orb orb2"></div>
+  <div class="glow-orb orb1"></div>
+  <div class="glow-orb orb2"></div>
 
-<div class="container">
-  <header>
-    <div class="logo">Page<span>Pulse</span></div>
-    <div class="badge">AI WEBSITE AUDIT TOOL</div>
-  </header>
+  <div class="container">
+    <header>
+      <div class="logo">Page<span>Pulse</span></div>
+      <div class="badge">AI WEBSITE AUDIT TOOL</div>
+    </header>
 
-  <!-- HERO + INPUT -->
-  <section class="hero" id="homeSection">
-    <div class="hero-tag">Powered by Google Gemini AI</div>
+    <!-- HERO + INPUT -->
+    <section class="hero" id="homeSection">
+      <div class="hero-tag">Powered by AI</div>
 
-    <h1>Audit any page.<br><span class="line2">In seconds.</span></h1>
-    <p class="hero-sub">Extract factual metrics and get AI-powered SEO, messaging, and UX insights — grounded in real data.</p>
 
-    <div class="input-card">
-      <div class="input-row">
-        <input type="url" class="url-input" id="urlInput" placeholder="https://example.com/page" />
-        <button class="btn-audit" id="auditBtn" onclick="startAudit()">Audit Page →</button>
+      <h1>Audit any page.<br><span class="line2">In seconds.</span></h1>
+      <p class="hero-sub">Extract factual metrics and get AI-powered SEO, messaging, and UX insights — grounded in real
+        data.</p>
+
+      <div class="input-card">
+        <div class="input-row">
+          <input type="url" class="url-input" id="urlInput" placeholder="https://example.com/page" />
+          <button class="btn-audit" id="auditBtn" onclick="startAudit()">Audit Page →</button>
+        </div>
+        <p class="proxy-note">Uses a CORS proxy to fetch pages. Works with most public URLs.</p>
       </div>
-      <p class="proxy-note">Uses a CORS proxy to fetch pages. Works with most public URLs.</p>
-    </div>
-    <div class="error-box" id="errorBox"></div>
-  </section>
+      <div class="error-box" id="errorBox"></div>
+    </section>
 
-  <!-- LOADING -->
-  <div class="loading-state" id="loadingState">
-    <div class="spinner-wrap"><div class="spinner"></div></div>
-    <div class="loading-label" id="loadingLabel">Fetching page...</div>
-    <div class="loading-steps">
-      <div class="step" id="step1">⬡ Fetching HTML</div>
-      <div class="step" id="step2">⬡ Extracting metrics</div>
-      <div class="step" id="step3">⬡ Sending to AI</div>
-      <div class="step" id="step4">⬡ Building report</div>
+    <!-- LOADING -->
+    <div class="loading-state" id="loadingState">
+      <div class="spinner-wrap">
+        <div class="spinner"></div>
+      </div>
+      <div class="loading-label" id="loadingLabel">Fetching page...</div>
+      <div class="loading-steps">
+        <div class="step" id="step1">⬡ Fetching HTML</div>
+        <div class="step" id="step2">⬡ Extracting metrics</div>
+        <div class="step" id="step3">⬡ Sending to AI</div>
+        <div class="step" id="step4">⬡ Building report</div>
+      </div>
     </div>
+
+    <!-- RESULTS -->
+    <section id="results">
+      <div class="results-header">
+        <div>
+          <div class="section-label" style="margin-bottom:6px">Audited URL</div>
+          <div class="audited-url" id="auditedUrl"></div>
+        </div>
+        <button class="btn-reset" onclick="resetTool()">← New Audit</button>
+      </div>
+
+      <!-- METRICS -->
+      <div class="section-label">Factual Metrics</div>
+      <div class="metrics-grid" id="metricsGrid"></div>
+
+      <!-- META -->
+      <div class="section-label">Meta Tags</div>
+      <div class="meta-block" id="metaBlock"></div>
+
+      <!-- AI INSIGHTS -->
+      <div class="section-label">AI Insights</div>
+      <div class="insights-grid" id="insightsGrid"></div>
+
+      <!-- RECOMMENDATIONS -->
+      <div class="section-label">Prioritized Recommendations</div>
+      <div class="recs-list" id="recsList"></div>
+
+      <!-- PROMPT LOG -->
+      <div class="log-section">
+        <div class="section-label">Prompt Logs & Reasoning Traces</div>
+        <button class="log-toggle" onclick="toggleLog()">
+          <span id="logToggleIcon">▶</span> View AI Orchestration Logs
+        </button>
+        <div class="log-body" id="logBody">
+          <div class="log-tab-bar">
+            <div class="log-tab active" onclick="switchTab('system')">System Prompt</div>
+            <div class="log-tab" onclick="switchTab('user')">User Prompt</div>
+            <div class="log-tab" onclick="switchTab('input')">Structured Input</div>
+            <div class="log-tab" onclick="switchTab('raw')">Raw Output</div>
+          </div>
+          <div class="log-content active" id="tab-system">
+            <pre id="log-system"></pre>
+          </div>
+          <div class="log-content" id="tab-user">
+            <pre id="log-user"></pre>
+          </div>
+          <div class="log-content" id="tab-input">
+            <pre id="log-input"></pre>
+          </div>
+          <div class="log-content" id="tab-raw">
+            <pre id="log-raw"></pre>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <footer>PagePulse — AI Website Audit Tool &nbsp;·&nbsp; Built for EIGHT25MEDIA Assignment</footer>
   </div>
 
-  <!-- RESULTS -->
-  <section id="results">
-    <div class="results-header">
-      <div>
-        <div class="section-label" style="margin-bottom:6px">Audited URL</div>
-        <div class="audited-url" id="auditedUrl"></div>
-      </div>
-      <button class="btn-reset" onclick="resetTool()">← New Audit</button>
-    </div>
+  <script>
+    // ── CORS PROXY ──────────────────────────────────────────────────────────────
+    const PROXY = 'https://corsproxy.io/?';
 
-    <!-- METRICS -->
-    <div class="section-label">Factual Metrics</div>
-    <div class="metrics-grid" id="metricsGrid"></div>
+    // ── SCRAPER ──────────────────────────────────────────────────────────────────
+    function extractMetrics(html, url) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
 
-    <!-- META -->
-    <div class="section-label">Meta Tags</div>
-    <div class="meta-block" id="metaBlock"></div>
+      // Word count from body text
+      const bodyText = doc.body?.innerText || doc.body?.textContent || '';
+      const words = bodyText.trim().split(/\s+/).filter(w => w.length > 0);
+      const wordCount = words.length;
 
-    <!-- AI INSIGHTS -->
-    <div class="section-label">AI Insights</div>
-    <div class="insights-grid" id="insightsGrid"></div>
+      // Headings
+      const h1 = doc.querySelectorAll('h1').length;
+      const h2 = doc.querySelectorAll('h2').length;
+      const h3 = doc.querySelectorAll('h3').length;
 
-    <!-- RECOMMENDATIONS -->
-    <div class="section-label">Prioritized Recommendations</div>
-    <div class="recs-list" id="recsList"></div>
+      // Images
+      const imgs = doc.querySelectorAll('img');
+      const totalImages = imgs.length;
+      const missingAlt = [...imgs].filter(i => !i.getAttribute('alt') || i.getAttribute('alt').trim() === '').length;
+      const missingAltPct = totalImages > 0 ? Math.round((missingAlt / totalImages) * 100) : 0;
 
-    <!-- PROMPT LOG -->
-    <div class="log-section">
-      <div class="section-label">Prompt Logs & Reasoning Traces</div>
-      <button class="log-toggle" onclick="toggleLog()">
-        <span id="logToggleIcon">▶</span> View AI Orchestration Logs
-      </button>
-      <div class="log-body" id="logBody">
-        <div class="log-tab-bar">
-          <div class="log-tab active" onclick="switchTab('system')">System Prompt</div>
-          <div class="log-tab" onclick="switchTab('user')">User Prompt</div>
-          <div class="log-tab" onclick="switchTab('input')">Structured Input</div>
-          <div class="log-tab" onclick="switchTab('raw')">Raw Output</div>
-        </div>
-        <div class="log-content active" id="tab-system"><pre id="log-system"></pre></div>
-        <div class="log-content" id="tab-user"><pre id="log-user"></pre></div>
-        <div class="log-content" id="tab-input"><pre id="log-input"></pre></div>
-        <div class="log-content" id="tab-raw"><pre id="log-raw"></pre></div>
-      </div>
-    </div>
+      // Links
+      const links = doc.querySelectorAll('a[href]');
+      let internal = 0, external = 0;
+      const origin = (() => { try { return new URL(url).hostname; } catch { return ''; } })();
+      links.forEach(a => {
+        const href = a.getAttribute('href') || '';
+        if (href.startsWith('http') || href.startsWith('//')) {
+          try {
+            const linkHost = new URL(href.startsWith('//') ? 'https:' + href : href).hostname;
+            linkHost === origin ? internal++ : external++;
+          } catch { internal++; }
+        } else if (href.startsWith('/') || href.startsWith('#') || href.startsWith('.')) {
+          internal++;
+        } else if (href.startsWith('mailto:') || href.startsWith('tel:')) {
+          // skip
+        } else {
+          internal++;
+        }
+      });
 
-  </section>
+      // CTAs (buttons + links with CTA-ish text/classes)
+      const ctaKeywords = /\b(get|start|try|buy|sign up|signup|subscribe|contact|request|demo|download|learn more|book|schedule|join|register|apply|explore|discover|shop|order|claim|access|unlock)\b/i;
+      const buttons = doc.querySelectorAll('button, [role="button"], input[type="submit"], input[type="button"]');
+      const ctaLinks = [...doc.querySelectorAll('a')].filter(a => {
+        const cls = (a.className || '').toLowerCase();
+        const txt = (a.textContent || '').trim();
+        return cls.includes('btn') || cls.includes('button') || cls.includes('cta') ||
+          ctaKeywords.test(txt) || ctaKeywords.test(cls);
+      });
+      const ctaCount = buttons.length + ctaLinks.length;
 
-  <footer>PagePulse — AI Website Audit Tool &nbsp;·&nbsp; Built for EIGHT25MEDIA Assignment</footer>
-</div>
+      // Meta
+      const metaTitle = doc.querySelector('title')?.textContent?.trim() || '';
+      const metaDesc = doc.querySelector('meta[name="description"]')?.getAttribute('content')?.trim() || '';
+      const metaOgTitle = doc.querySelector('meta[property="og:title"]')?.getAttribute('content') || '';
 
-<script>
-// ── CORS PROXY ──────────────────────────────────────────────────────────────
-const PROXY = 'https://corsproxy.io/?';
+      // Page content sample for AI (first 4000 chars of body text)
+      const contentSample = bodyText.replace(/\s+/g, ' ').trim().slice(0, 4000);
 
-// ── SCRAPER ──────────────────────────────────────────────────────────────────
-function extractMetrics(html, url) {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, 'text/html');
+      // Headings text for AI
+      const h1Texts = [...doc.querySelectorAll('h1')].map(h => h.textContent.trim()).filter(Boolean);
+      const h2Texts = [...doc.querySelectorAll('h2')].slice(0, 8).map(h => h.textContent.trim()).filter(Boolean);
 
-  // Word count from body text
-  const bodyText = doc.body?.innerText || doc.body?.textContent || '';
-  const words = bodyText.trim().split(/\s+/).filter(w => w.length > 0);
-  const wordCount = words.length;
-
-  // Headings
-  const h1 = doc.querySelectorAll('h1').length;
-  const h2 = doc.querySelectorAll('h2').length;
-  const h3 = doc.querySelectorAll('h3').length;
-
-  // Images
-  const imgs = doc.querySelectorAll('img');
-  const totalImages = imgs.length;
-  const missingAlt = [...imgs].filter(i => !i.getAttribute('alt') || i.getAttribute('alt').trim() === '').length;
-  const missingAltPct = totalImages > 0 ? Math.round((missingAlt / totalImages) * 100) : 0;
-
-  // Links
-  const links = doc.querySelectorAll('a[href]');
-  let internal = 0, external = 0;
-  const origin = (() => { try { return new URL(url).hostname; } catch { return ''; } })();
-  links.forEach(a => {
-    const href = a.getAttribute('href') || '';
-    if (href.startsWith('http') || href.startsWith('//')) {
-      try {
-        const linkHost = new URL(href.startsWith('//') ? 'https:' + href : href).hostname;
-        linkHost === origin ? internal++ : external++;
-      } catch { internal++; }
-    } else if (href.startsWith('/') || href.startsWith('#') || href.startsWith('.')) {
-      internal++;
-    } else if (href.startsWith('mailto:') || href.startsWith('tel:')) {
-      // skip
-    } else {
-      internal++;
+      return {
+        wordCount, h1, h2, h3,
+        totalImages, missingAlt, missingAltPct,
+        internal, external, ctaCount,
+        metaTitle, metaDesc, metaOgTitle,
+        contentSample, h1Texts, h2Texts
+      };
     }
-  });
 
-  // CTAs (buttons + links with CTA-ish text/classes)
-  const ctaKeywords = /\b(get|start|try|buy|sign up|signup|subscribe|contact|request|demo|download|learn more|book|schedule|join|register|apply|explore|discover|shop|order|claim|access|unlock)\b/i;
-  const buttons = doc.querySelectorAll('button, [role="button"], input[type="submit"], input[type="button"]');
-  const ctaLinks = [...doc.querySelectorAll('a')].filter(a => {
-    const cls = (a.className || '').toLowerCase();
-    const txt = (a.textContent || '').trim();
-    return cls.includes('btn') || cls.includes('button') || cls.includes('cta') ||
-           ctaKeywords.test(txt) || ctaKeywords.test(cls);
-  });
-  const ctaCount = buttons.length + ctaLinks.length;
-
-  // Meta
-  const metaTitle = doc.querySelector('title')?.textContent?.trim() || '';
-  const metaDesc = doc.querySelector('meta[name="description"]')?.getAttribute('content')?.trim() || '';
-  const metaOgTitle = doc.querySelector('meta[property="og:title"]')?.getAttribute('content') || '';
-
-  // Page content sample for AI (first 4000 chars of body text)
-  const contentSample = bodyText.replace(/\s+/g, ' ').trim().slice(0, 4000);
-
-  // Headings text for AI
-  const h1Texts = [...doc.querySelectorAll('h1')].map(h => h.textContent.trim()).filter(Boolean);
-  const h2Texts = [...doc.querySelectorAll('h2')].slice(0, 8).map(h => h.textContent.trim()).filter(Boolean);
-
-  return {
-    wordCount, h1, h2, h3,
-    totalImages, missingAlt, missingAltPct,
-    internal, external, ctaCount,
-    metaTitle, metaDesc, metaOgTitle,
-    contentSample, h1Texts, h2Texts
-  };
-}
-
-// ── PROMPT BUILDER ───────────────────────────────────────────────────────────
-function buildSystemPrompt() {
-  return `You are a senior web strategist and SEO analyst at a digital marketing agency specializing in high-performing B2B and B2C marketing websites.
+    // ── PROMPT BUILDER ───────────────────────────────────────────────────────────
+    function buildSystemPrompt() {
+      return `You are a senior web strategist and SEO analyst at a digital marketing agency specializing in high-performing B2B and B2C marketing websites.
 
 You analyze websites for SEO structure, messaging clarity, CTA usage, content depth, and UX quality. Your job is to produce structured, actionable audit reports grounded in factual page metrics.
 
@@ -686,10 +933,10 @@ Output schema:
 }
 
 Provide 3–5 recommendations only. Each insight should be 2–4 sentences, specific, and directly tied to the provided data. Avoid generic advice. Be direct and professional.`;
-}
+    }
 
-function buildUserPrompt(metrics, url) {
-  return `Audit this webpage and generate structured AI insights.
+    function buildUserPrompt(metrics, url) {
+      return `Audit this webpage and generate structured AI insights.
 
 URL: ${url}
 
@@ -709,98 +956,98 @@ PAGE CONTENT SAMPLE (first 4000 chars):
 ${metrics.contentSample}
 
 Based on the above data, generate structured insights and recommendations.`;
-}
+    }
 
-// ── STATE ─────────────────────────────────────────────────────────────────────
-let promptLogs = {};
+    // ── STATE ─────────────────────────────────────────────────────────────────────
+    let promptLogs = {};
 
-// ── MAIN AUDIT FLOW ───────────────────────────────────────────────────────────
-async function startAudit() {
-  const url = document.getElementById('urlInput').value.trim();
-  if (!url || !url.startsWith('http')) {
-    showError('Please enter a valid URL starting with https://');
-    return;
-  }
+    // ── MAIN AUDIT FLOW ───────────────────────────────────────────────────────────
+    async function startAudit() {
+      const url = document.getElementById('urlInput').value.trim();
+      if (!url || !url.startsWith('http')) {
+        showError('Please enter a valid URL starting with https://');
+        return;
+      }
 
-  hideError();
-  showLoading();
-  setStep(1);
+      hideError();
+      showLoading();
+      setStep(1);
 
-  let html;
-  try {
-    const res = await fetch(PROXY + encodeURIComponent(url));
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    html = await res.text();
-  } catch (e) {
-    hideLoading();
-    showError(`Could not fetch the page. Try a different URL or check if the site allows scraping.\n\nError: ${e.message}`);
-    return;
-  }
+      let html;
+      try {
+        const res = await fetch(PROXY + encodeURIComponent(url));
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        html = await res.text();
+      } catch (e) {
+        hideLoading();
+        showError(`Could not fetch the page. Try a different URL or check if the site allows scraping.\n\nError: ${e.message}`);
+        return;
+      }
 
-  setStep(2);
-  const metrics = extractMetrics(html, url);
+      setStep(2);
+      const metrics = extractMetrics(html, url);
 
-  setStep(3);
-  const systemPrompt = buildSystemPrompt();
-  const userPrompt = buildUserPrompt(metrics, url);
+      setStep(3);
+      const systemPrompt = buildSystemPrompt();
+      const userPrompt = buildUserPrompt(metrics, url);
 
-  let rawOutput = '';
-  let aiData;
+      let rawOutput = '';
+      let aiData;
 
-  try {
-    const response = await fetch("/api/audit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ systemPrompt, userPrompt })
-    });
+      try {
+        const response = await fetch("/api/audit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ systemPrompt, userPrompt })
+        });
 
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "AI Analysis failed");
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "AI Analysis failed");
 
-    rawOutput = data.content?.[0]?.text || JSON.stringify(data);
-    const cleaned = rawOutput.replace(/```json|```/g, '').trim();
-    aiData = JSON.parse(cleaned);
-  } catch (e) {
-    hideLoading();
-    showError(`AI analysis failed: ${e.message}`);
-    return;
-  }
+        rawOutput = data.content?.[0]?.text || JSON.stringify(data);
+        const cleaned = rawOutput.replace(/```json|```/g, '').trim();
+        aiData = JSON.parse(cleaned);
+      } catch (e) {
+        hideLoading();
+        showError(`AI analysis failed: ${e.message}`);
+        return;
+      }
 
-  setStep(4);
+      setStep(4);
 
-  // Store logs
-  promptLogs = {
-    system: systemPrompt,
-    user: userPrompt,
-    input: JSON.stringify({ systemPrompt, userPrompt }, null, 2),
-    raw: rawOutput
-  };
+      // Store logs
+      promptLogs = {
+        system: systemPrompt,
+        user: userPrompt,
+        input: JSON.stringify({ systemPrompt, userPrompt }, null, 2),
+        raw: rawOutput
+      };
 
-  await new Promise(r => setTimeout(r, 500));
-  hideLoading();
-  renderResults(url, metrics, aiData);
-}
+      await new Promise(r => setTimeout(r, 500));
+      hideLoading();
+      renderResults(url, metrics, aiData);
+    }
 
 
-// ── RENDER ────────────────────────────────────────────────────────────────────
-function renderResults(url, metrics, ai) {
-  document.getElementById('homeSection').style.display = 'none';
-  document.getElementById('auditedUrl').textContent = url;
+    // ── RENDER ────────────────────────────────────────────────────────────────────
+    function renderResults(url, metrics, ai) {
+      document.getElementById('homeSection').style.display = 'none';
+      document.getElementById('auditedUrl').textContent = url;
 
-  // Metrics grid
-  const mg = document.getElementById('metricsGrid');
-  const metricItems = [
-    { label: 'WORD COUNT', value: metrics.wordCount.toLocaleString(), cls: metrics.wordCount < 300 ? 'warn' : metrics.wordCount > 1000 ? 'good' : '' },
-    { label: 'H1 TAGS', value: metrics.h1, cls: metrics.h1 === 0 ? 'warn' : metrics.h1 > 1 ? 'warn' : 'good' },
-    { label: 'H2 TAGS', value: metrics.h2 },
-    { label: 'H3 TAGS', value: metrics.h3 },
-    { label: 'CTA ELEMENTS', value: metrics.ctaCount, cls: metrics.ctaCount === 0 ? 'warn' : '' },
-    { label: 'INTERNAL LINKS', value: metrics.internal },
-    { label: 'EXTERNAL LINKS', value: metrics.external },
-    { label: 'IMAGES', value: metrics.totalImages },
-    { label: 'MISSING ALT TEXT', value: `${metrics.missingAltPct}%`, sub: `${metrics.missingAlt} of ${metrics.totalImages}`, cls: metrics.missingAltPct > 30 ? 'warn' : metrics.missingAltPct === 0 && metrics.totalImages > 0 ? 'good' : '' },
-  ];
-  mg.innerHTML = metricItems.map(m => `
+      // Metrics grid
+      const mg = document.getElementById('metricsGrid');
+      const metricItems = [
+        { label: 'WORD COUNT', value: metrics.wordCount.toLocaleString(), cls: metrics.wordCount < 300 ? 'warn' : metrics.wordCount > 1000 ? 'good' : '' },
+        { label: 'H1 TAGS', value: metrics.h1, cls: metrics.h1 === 0 ? 'warn' : metrics.h1 > 1 ? 'warn' : 'good' },
+        { label: 'H2 TAGS', value: metrics.h2 },
+        { label: 'H3 TAGS', value: metrics.h3 },
+        { label: 'CTA ELEMENTS', value: metrics.ctaCount, cls: metrics.ctaCount === 0 ? 'warn' : '' },
+        { label: 'INTERNAL LINKS', value: metrics.internal },
+        { label: 'EXTERNAL LINKS', value: metrics.external },
+        { label: 'IMAGES', value: metrics.totalImages },
+        { label: 'MISSING ALT TEXT', value: `${metrics.missingAltPct}%`, sub: `${metrics.missingAlt} of ${metrics.totalImages}`, cls: metrics.missingAltPct > 30 ? 'warn' : metrics.missingAltPct === 0 && metrics.totalImages > 0 ? 'good' : '' },
+      ];
+      mg.innerHTML = metricItems.map(m => `
     <div class="metric-card">
       <div class="metric-label">${m.label}</div>
       <div class="metric-value ${m.cls || ''}">${m.value}</div>
@@ -808,8 +1055,8 @@ function renderResults(url, metrics, ai) {
     </div>
   `).join('');
 
-  // Meta block
-  document.getElementById('metaBlock').innerHTML = `
+      // Meta block
+      document.getElementById('metaBlock').innerHTML = `
     <div class="meta-item">
       <div class="meta-key">META TITLE (${metrics.metaTitle.length} chars)</div>
       <div class="meta-val ${!metrics.metaTitle ? 'missing' : ''}">${metrics.metaTitle || '⚠ Missing meta title'}</div>
@@ -821,26 +1068,26 @@ function renderResults(url, metrics, ai) {
     ${metrics.metaOgTitle ? `<div class="meta-item"><div class="meta-key">OG TITLE</div><div class="meta-val">${metrics.metaOgTitle}</div></div>` : ''}
   `;
 
-  // Insights
-  const insightDefs = [
-    { key: 'seo', label: 'SEO Structure', cls: 'seo', icon: '🔍' },
-    { key: 'messaging', label: 'Messaging Clarity', cls: 'msg', icon: '💬' },
-    { key: 'cta', label: 'CTA Usage', cls: 'cta', icon: '🎯' },
-    { key: 'content', label: 'Content Depth', cls: 'content', icon: '📝' },
-    { key: 'ux', label: 'UX & Structure', cls: 'ux', icon: '🏗' },
-  ];
-  document.getElementById('insightsGrid').innerHTML = insightDefs.map((d, i) => `
-    <div class="insight-card ${d.cls} fade-up delay-${Math.min(i+1, 3)}">
+      // Insights
+      const insightDefs = [
+        { key: 'seo', label: 'SEO Structure', cls: 'seo', icon: '🔍' },
+        { key: 'messaging', label: 'Messaging Clarity', cls: 'msg', icon: '💬' },
+        { key: 'cta', label: 'CTA Usage', cls: 'cta', icon: '🎯' },
+        { key: 'content', label: 'Content Depth', cls: 'content', icon: '📝' },
+        { key: 'ux', label: 'UX & Structure', cls: 'ux', icon: '🏗' },
+      ];
+      document.getElementById('insightsGrid').innerHTML = insightDefs.map((d, i) => `
+    <div class="insight-card ${d.cls} fade-up delay-${Math.min(i + 1, 3)}">
       <div class="insight-title"><span class="insight-icon">${d.icon}</span>${d.label}</div>
       <div class="insight-body">${ai.insights?.[d.key] || 'No data available.'}</div>
     </div>
   `).join('');
 
-  // Recs
-  const tagClass = { high: 'tag-high', medium: 'tag-med', low: 'tag-low' };
-  document.getElementById('recsList').innerHTML = (ai.recommendations || []).map((r, i) => `
+      // Recs
+      const tagClass = { high: 'tag-high', medium: 'tag-med', low: 'tag-low' };
+      document.getElementById('recsList').innerHTML = (ai.recommendations || []).map((r, i) => `
     <div class="rec-card fade-up">
-      <div class="rec-num">0${i+1}</div>
+      <div class="rec-num">0${i + 1}</div>
       <div class="rec-content">
         <div class="rec-title">${r.title}</div>
         <div class="rec-body">${r.body}</div>
@@ -849,67 +1096,68 @@ function renderResults(url, metrics, ai) {
     </div>
   `).join('');
 
-  // Logs
-  document.getElementById('log-system').textContent = promptLogs.system;
-  document.getElementById('log-user').textContent = promptLogs.user;
-  document.getElementById('log-input').textContent = promptLogs.input;
-  document.getElementById('log-raw').textContent = promptLogs.raw;
+      // Logs
+      document.getElementById('log-system').textContent = promptLogs.system;
+      document.getElementById('log-user').textContent = promptLogs.user;
+      document.getElementById('log-input').textContent = promptLogs.input;
+      document.getElementById('log-raw').textContent = promptLogs.raw;
 
-  document.getElementById('results').classList.add('active');
-  document.getElementById('results').style.display = 'block';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+      document.getElementById('results').classList.add('active');
+      document.getElementById('results').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
-// ── UI HELPERS ────────────────────────────────────────────────────────────────
-function showLoading() {
-  document.getElementById('loadingState').classList.add('active');
-  document.getElementById('auditBtn').disabled = true;
-  ['step1','step2','step3','step4'].forEach(s => {
-    document.getElementById(s).className = 'step';
-  });
-}
-function hideLoading() {
-  document.getElementById('loadingState').classList.remove('active');
-  document.getElementById('auditBtn').disabled = false;
-}
-function setStep(n) {
-  for (let i = 1; i < n; i++) document.getElementById(`step${i}`).className = 'step done';
-  document.getElementById(`step${n}`).className = 'step active';
-}
-function showError(msg) {
-  const b = document.getElementById('errorBox');
-  b.textContent = msg;
-  b.classList.add('active');
-}
-function hideError() {
-  document.getElementById('errorBox').classList.remove('active');
-}
-function resetTool() {
-  document.getElementById('results').style.display = 'none';
-  document.getElementById('results').classList.remove('active');
-  document.getElementById('homeSection').style.display = 'block';
-  document.getElementById('urlInput').value = '';
-  document.getElementById('logBody').classList.remove('open');
-  document.getElementById('logToggleIcon').textContent = '▶';
-}
-function toggleLog() {
-  const body = document.getElementById('logBody');
-  body.classList.toggle('open');
-  document.getElementById('logToggleIcon').textContent = body.classList.contains('open') ? '▼' : '▶';
-}
-function switchTab(name) {
-  document.querySelectorAll('.log-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.log-content').forEach(c => c.classList.remove('active'));
-  event.target.classList.add('active');
-  document.getElementById(`tab-${name}`).classList.add('active');
-}
+    // ── UI HELPERS ────────────────────────────────────────────────────────────────
+    function showLoading() {
+      document.getElementById('loadingState').classList.add('active');
+      document.getElementById('auditBtn').disabled = true;
+      ['step1', 'step2', 'step3', 'step4'].forEach(s => {
+        document.getElementById(s).className = 'step';
+      });
+    }
+    function hideLoading() {
+      document.getElementById('loadingState').classList.remove('active');
+      document.getElementById('auditBtn').disabled = false;
+    }
+    function setStep(n) {
+      for (let i = 1; i < n; i++) document.getElementById(`step${i}`).className = 'step done';
+      document.getElementById(`step${n}`).className = 'step active';
+    }
+    function showError(msg) {
+      const b = document.getElementById('errorBox');
+      b.textContent = msg;
+      b.classList.add('active');
+    }
+    function hideError() {
+      document.getElementById('errorBox').classList.remove('active');
+    }
+    function resetTool() {
+      document.getElementById('results').style.display = 'none';
+      document.getElementById('results').classList.remove('active');
+      document.getElementById('homeSection').style.display = 'block';
+      document.getElementById('urlInput').value = '';
+      document.getElementById('logBody').classList.remove('open');
+      document.getElementById('logToggleIcon').textContent = '▶';
+    }
+    function toggleLog() {
+      const body = document.getElementById('logBody');
+      body.classList.toggle('open');
+      document.getElementById('logToggleIcon').textContent = body.classList.contains('open') ? '▼' : '▶';
+    }
+    function switchTab(name) {
+      document.querySelectorAll('.log-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.log-content').forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById(`tab-${name}`).classList.add('active');
+    }
 
-// Enter key support
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('urlInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') startAudit();
-  });
-});
-</script>
+    // Enter key support
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('urlInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') startAudit();
+      });
+    });
+  </script>
 </body>
+
 </html>
