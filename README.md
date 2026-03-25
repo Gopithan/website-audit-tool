@@ -31,11 +31,13 @@ A single-file web app that accepts a URL, extracts factual page metrics, and use
 ``` mermaid
 graph TD
     User([User]) -->|Input URL| UI[Frontend: index.html]
-    UI -->|Fetch HTML| Proxy[corsproxy.io]
-    Proxy -->|HTML Content| UI
+    UI -->|POST /api/scrape| Server[Backend: server.js]
+    Server -->|Direct Fetch| Target[Target Website]
+    Target -->|HTML Content| Server
+    Server -->|HTML Content| UI
     UI -->|Extract Metrics| Scraper[DOMParser Scraper]
     Scraper -->|Structured Data| UI
-    UI -->|POST /api/audit| Server[Backend: server.js]
+    UI -->|POST /api/audit| Server
     Server -->|Secure SDK Call| AI[Google Gemini API]
     AI -->|JSON Analysis| Server
     Server -->|Final Report| UI
@@ -156,7 +158,7 @@ All prompt logs are visible in the app UI under **"View AI Orchestration Logs"**
 - **Frontend:** Vanilla HTML/CSS/JS — no build step, no dependencies
 - **Scraping:** Browser DOMParser API
 - **AI:** Google Gemini API (`gemini-1.5-flash`)
-- **CORS:** corsproxy.io
+- **Scraping:** Server-side fetch (via `server.js`)
 
 ---
 

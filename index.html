@@ -828,8 +828,7 @@
   </div>
 
   <script>
-    // ── CORS PROXY ──────────────────────────────────────────────────────────────
-    const PROXY = 'https://corsproxy.io/?';
+
 
     // ── SCRAPER ──────────────────────────────────────────────────────────────────
     function extractMetrics(html, url) {
@@ -975,12 +974,20 @@ Based on the above data, generate structured insights and recommendations.`;
 
       let html;
       try {
-        const res = await fetch(PROXY + encodeURIComponent(url));
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const res = await fetch("/api/scrape", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url })
+        });
+        
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || `HTTP ${res.status}`);
+        }
         html = await res.text();
       } catch (e) {
         hideLoading();
-        showError(`Could not fetch the page. Try a different URL or check if the site allows scraping.\n\nError: ${e.message}`);
+        showError(`Could not fetch the page. Error: ${e.message}`);
         return;
       }
 
